@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<title>10パズル</title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<link href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="10パズル"/>
+
+<link rel="shortcut icon" href="./imgs/logo.png" type="image/png"/>
+<link rel="icon" href="./imgs/logo.png" type="image/png"/>
+<link rel="apple-touch-icon" href="./imgs/logo.png"/>
+<script>
+$(function(){
+  $('#input_form').submit( function( e ){
+    e.preventDefault();
+
+    var nums = $('#input_nums').val();
+    var tmp1 = nums.split( ' ' );
+    var a = [];
+    if( tmp1.length == 1 ){
+      var tmp2 = parseInt( nums );
+      if( !isNaN( tmp2 ) ){
+        for( var i = 0; i < nums.length; i ++ ){
+          var c = parseInt( nums.charAt( i ) );
+          a.push( c );
+        }
+
+        var p = new p10( a );
+        var ans = p.findAnswer();
+        showAnswer( ans );
+      }
+    }else{
+      for( var i = 0; i < tmp1.length; i ++ ){
+        var tmp2 = parseInt( tmp1[i] );
+        if( !isNaN( tmp2 ) ){
+          a.push( tmp2 );
+        }
+      }
+      if( a.length == tmp1.length ){
+        var p = new p10( a );
+        var ans = p.findAnswer();
+        showAnswer( ans );
+      }
+    }
+  });
+});
+
+var b = true;
+function moveArms(){
+  b = !b;
+  if( b ){
+    $('#arm1').removeClass( 'hide' );
+    $('#arm2').removeClass( 'hide' );
+    $('#arm3').addClass( 'hide' );
+    $('#arm4').addClass( 'hide' );
+  }else{
+    $('#arm1').addClass( 'hide' );
+    $('#arm2').addClass( 'hide' );
+    $('#arm3').removeClass( 'hide' );
+    $('#arm4').removeClass( 'hide' );
+  }
+}
+
+function showAnswer( answer ){
+  var ii = setInterval( moveArms, 500 );
+  setTimeout( function(){
+    clearTimeout( ii );
+    if( answer ){
+      $('#output_formula').val( answer );
+    }else{
+      $('#output_formula').val( '' );
+    }
+  }, 2000 );
+}
+
+class p10{
+  constructor( arr ){
+    this.a = arr;
+    this.num = arr.length;
+
+    this.x = this.makeCombination( this.num );
+    this.y = [ '+', '-', '*', '/' ];
+
+    this.c = [];
+    this.d = [];
+  }
+
+
+  //. [0, 1, .., n-1] を並び替えてできる全組み合わせを求める
+  makeCombination( n ){
+    //console.log( 'n = ' + n );
+    var newCombination = [];
+    if( n == 1 ){
+      newCombination.push( [0] );
+    }else{
+      var prevCombination = this.makeCombination( n - 1 );
+      for( var i = 0; i < prevCombination.length; i ++ ){
+        for( var j = 0; j <= prevCombination[i].length; j ++ ){
+          var copied = prevCombination[i].concat();
+          copied.splice( j, 0, n - 1 );
+          newCombination.push( copied );
+        }
+      }
+    }
+
+    return newCombination;
+  }
+
+  //. [0, 1, .., n-1] から m 個を重複有りで選ぶ全組み合わせを求める
+  findAllCombination( n, m ){
+    this.d = [];
+    var ans = [];
+    this.arec( 0, n, m, ans );
+  }
+
+  arec( i, n, m, ans ){
+    if( i == m ){
+      this.d.push( JSON.parse( JSON.stringify( ans ) ) );
+    }else{
+      for( var j = 0; j < n; j ++ ){
+        ans[i] = j;
+        this.arec( i + 1, n, m, ans );
+      }
+    }
+  }
+
+  //. [0, 1, .., n-1] から m 個を重複無しで選ぶ全組み合わせを求める
+  findCombination( n, m ){
+    this.c = []; //new Array(n);
+    var ans = [];
+    this.rec( 0, n, m, ans );
+  }
+
+  rec( i, n, m, ans ){
+    if( i == n ){
+      var cnt = 0;
+      for( var j = 0; j < ans.length; j ++ ){
+        if( ans[j] == 1 ){ cnt ++; }
+      }
+      if( cnt == m ){
+        var f = [];
+        for( var j = 0; j < ans.length; j ++ ){
+          if( ans[j] == 1 ){ f.push( j ) }
+        }
+        this.c.push( f );
+      }
+    }else{
+      ans[i] = 0;
+      this.rec( i + 1, n, m, ans );
+
+      ans[i] = 1;
+      this.rec( i + 1, n, m, ans );
+    }
+  }
+
+  //. '1 2 3 4 + - *' 式を '1 * ( 2 - ( 3 + 4 ) )' に変換する
+  toNormalFormula( formula ){
+    var stack = [];
+    for( var i = 0; i < formula.length; i ++ ){
+      var f = formula[i];
+      if( typeof f == 'string' ){
+        var a2 = stack.pop();
+        var a1 = stack.pop();
+
+        if( typeof a1 == 'number' && a1 < 0 ){ a1 = '(' + a1 + ')'; }
+        if( typeof a2 == 'number' && a2 < 0 ){ a2 = '(' + a2 + ')'; }
+        f = '(' + a1 + f + a2 + ')';
+      }
+      stack.push( f );
+    }
+
+    var r = stack.pop();
+    r = r.substr( 1, r.length - 2 );
+
+    return r;
+  }
+
+  filo_eval( formula ){
+    var stack = [];
+    for( var i = 0; i < formula.length; i ++ ){
+      var f = formula[i];
+      if( typeof f == 'string' ){
+        var a2 = stack.pop();
+        var a1 = stack.pop();
+        if( f == '/' && a2 == 0 ){
+          return undefined;
+        }else{
+          f = eval( '(' + a1 + ')' + f + '(' + a2 + ')' );
+        }
+      }
+      stack.push( f );
+    }
+
+    var r = stack.pop();
+    /*
+    if( r != Math.floor( r ) ){
+      //. 丸め誤差が発生している可能性？
+    }
+    */
+
+    return r;
+  }
+
+  findAnswer(){
+    var r = null; //'not found.';
+    var b = false;
+
+    var len = ( this.num - 2 ) * 2;
+    this.findCombination( len, len / 2 );
+    //console.log( this.c.join( ' ' ) );
+
+    for( var i = 0; i < this.x.length && !b; i ++ ){
+      var z = this.x[i];  //. [ 0, 3, 2, 1 ];
+      var n = new Array( this.a.length );
+      for( var j = 0; j < this.a.length; j ++ ){
+        var idx = z[j];
+        n[j] = this.a[idx];
+      }
+
+      //. ( num - 1 ) 個の要素からなる m を生成する必要がある
+      this.findAllCombination( 4, this.num - 1 );
+      //console.log( this.d.join( ' ' ) );
+
+      for( var idx0 = 0; idx0 < this.d.length && !b; idx0 ++ ){
+        var _d = this.d[idx0];
+        //. _d = [ 0, 1, 0 ];
+        var m = [];
+        for( var idx1 = 0; idx1 < _d.length; idx1 ++ ){
+          var __d = _d[idx1];
+          m.push( this.y[__d] );
+        } //. m = [ '+', '-', '*' ];
+
+        for( var idx2 = 0; idx2 < this.c.length && !b; idx2 ++ ){
+          var _c = this.c[idx2];
+
+          //. _c の妥当性を確認する
+          var _p = [ n[0], n[1] ];
+          var n_idx = 2;
+          var m_idx = 0;
+          var idx_flag = true;
+          for( var j = 0; j < _c.length * 2; j ++ ){
+            if( _c.indexOf( j ) > -1 ){
+              _p.push( n[n_idx++] );
+            }else{
+              _p.push( m[m_idx++] );
+
+              if( m_idx + 1 > n_idx ){
+                idx_flag = false;
+              }
+            }
+          }
+
+          if( idx_flag ){
+            _p.push( m[m_idx] );
+
+            var e = this.filo_eval( _p );
+            if( e == 10 ){
+              r = this.toNormalFormula( _p );
+              b = true;
+            }
+          }
+        }
+      }
+    }
+
+    return r;
+  }
+}
+
+</script>
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+.mybox{
+  position: relative;
+  width: 656px;
+}
+.hide{
+  display: none;
+}
+#arm1{
+  position: absolute;
+  top: 370px;
+  left: 40px;
+}
+#arm2{
+  position: absolute;
+  top: 205px;
+  left: 490px;
+}
+#arm3{
+  position: absolute;
+  top: 210px;
+  left: 35px;
+}
+#arm4{
+  position: absolute;
+  top: 375px;
+  left: 490px;
+}
+#input{
+  position: absolute;
+  top: 300px;
+  left: 210px;
+}
+#input_nums{
+  color: #ff0000;
+  text-align: center;
+}
+#input_nums:focus{
+  border: 2px solid #ff0000;
+  outline: 0;
+}
+#output{
+  position: absolute;
+  top: 510px;
+  left: 210px;
+}
+#output_formula{
+  height: 40px;
+  color: #0000ff;
+  border: 2px solid #0000ff;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="mybox">
+    <img id="bg_img" src="./imgs/robot_body.png"/>
+    <div id="input">
+      <form id="input_form" action="" method="post">
+      <input type="text" id="input_nums"/>
+      <button type="submit" style="display:none;">button</button>
+      </form>
+    </div>
+    <div id="output">
+      <input type="text" id="output_formula" readonly/>
+    </div>
+    <div id="arm1">
+      <img src="./imgs/robot_arm1.png"/>
+    </div>
+    <div id="arm2">
+      <img src="./imgs/robot_arm2.png"/>
+    </div>
+    <div id="arm3" class="hide">
+      <img src="./imgs/robot_arm3.png"/>
+    </div>
+    <div id="arm4" class="hide">
+      <img src="./imgs/robot_arm4.png"/>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
