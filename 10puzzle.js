@@ -88,8 +88,39 @@ class p10{
         var a2 = stack.pop();
         var a1 = stack.pop();
 
-        if( typeof a1 == 'number' && a1 < 0 ){ a1 = '(' + a1 + ')'; }
-        if( typeof a2 == 'number' && a2 < 0 ){ a2 = '(' + a2 + ')'; }
+        //if( typeof a1 == 'number' && a1 < 0 ){ a1 = '(' + a1 + ')'; }
+        if( typeof a1 == 'number' && a1 < 0 ){
+          a1 = '(' + a1 + ')';
+        }else if( typeof a1 == 'string' ){
+          switch( f ){
+          case '+':
+            a1 = a1.substr( 1, a1.length - 2 );
+            break;
+          case '-':
+            a1 = a1.substr( 1, a1.length - 2 );
+            break;
+          case '*':
+            break;
+          case '/':
+            break;
+          }
+        }
+        //if( typeof a2 == 'number' && a2 < 0 ){ a2 = '(' + a2 + ')'; }
+        if( typeof a2 == 'number' && a2 < 0 ){
+          a2 = '(' + a2 + ')';
+        }else if( typeof a2 == 'string' ){
+          switch( f ){
+          case '+':
+            a2 = a1.substr( 1, a2.length - 2 );
+            break;
+          case '-':
+            break;
+          case '*':
+            break;
+          case '/':
+            break;
+          }
+        }
         f = '(' + a1 + f + a2 + ')';
       }
       stack.push( f );
@@ -193,7 +224,7 @@ class p10{
   }
 }
 
-
+/*
 //. 理論上では３つ以上ならイケるはず
 var l = process.argv.length;
 if( l > 4 && l < 8 ){
@@ -208,3 +239,4 @@ if( l > 4 && l < 8 ){
 }else{
   console.log( '$ node 10puzzle n1 n2 n3 (n4) (n5)' );
 }
+*/
