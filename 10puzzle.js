@@ -111,7 +111,7 @@ class p10{
         }else if( typeof a2 == 'string' ){
           switch( f ){
           case '+':
-            a2 = a1.substr( 1, a2.length - 2 );
+            a2 = a2.substr( 1, a2.length - 2 );
             break;
           case '-':
             break;
