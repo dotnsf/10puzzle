@@ -36,6 +36,8 @@ $(function(){
         var p = new p10( a );
         var ans = p.findAnswer();
         showAnswer( ans );
+      }else{
+        $('#output_formula').val( '認識できないっす' );
       }
     }else{
       for( var i = 0; i < tmp1.length; i ++ ){
@@ -48,6 +50,8 @@ $(function(){
         var p = new p10( a );
         var ans = p.findAnswer();
         showAnswer( ans );
+      }else{
+        $('#output_formula').val( '認識できないっす' );
       }
     }
   });
