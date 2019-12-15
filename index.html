@@ -55,6 +55,15 @@ $(function(){
       }
     }
   });
+
+  var dt = new Date();
+  var m = dt.getMonth() + 1;
+  var d = dt.getDate();
+  var ph = Math.floor( m / 10 ) + ' ';
+  ph += ( m % 10 ) + ' ';
+  ph += Math.floor( d / 10 ) + ' ';
+  ph += ( d % 10 );
+  $('#input_nums').prop( 'placeholder', ph );
 });
 
 var b = true;
